@@ -1,0 +1,105 @@
+---
+title: "project"
+output: pdf_document
+date: "2023-12-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(digits = 2)
+```
+
+```{r}
+library(ggplot2)
+library(stargazer)
+library(readxl)
+data2<-read_excel("driving.xlsx")
+data<-read_excel("driving.xlsx")
+```
+
+**Research Question**
+
+  The research question in this paper is whether or not BAC 08 laws (laws that set the maximum legal Blood Alcohol threshold at .08) have a measured effect on traffic fatalities. 
+
+  The importance of this question is that it will help lawmakers better understand whether this lower limit (previously was .10) is effective in reducing traffic accidents. The opposition to the .08 limit claims that the lower level punishes "moderate drinkers" who are unlikely to cause an accident and also does nothing to prevent the "heavy drinkers" who are the likely ones to cause the accident. There is also the claim that the .08 limit may have some positive effect on saving lives but the cost is too high as the extra law enforcement costs and resulting criminal penalties far exceed the benefits from the law. Answering this question will allow for policymakers to be better informed when they are pressured by a side to either enforce or repeal the current legislation regarding drunk driving. 
+
+  Next, we can look at the differences between this research paper and previous literature on this topic. A notable difference between this study and previous ones which also examined the effectiveness of BAC laws, Dee(2001) and Eisenberg (2003). is that this study utilizes more observations which is critical in analysis especially considering that some states have only had BAC 08 laws since 1993 which limited the amount of data to be examined in previous studies. Another crucial difference is that this study is the first to distinguish between states that adopted BAC early on their own and late state adopters (after 1999).Previous BAC studies such as Bertrand, Duflo, and Mullinainthan (2004) did not distinguish between the timing which is important to notice as many late state adopters did not pass the law under free will but under threat that they would lose federal highway funding if they did not. One more key difference between this study and previous literature is that our study found little to no effect could be attribited to the .08 BAC law when considering traffic fatalities.This goes against a previous analsyis by the U.S. General Accounting Office (1999) which found "some evidence" that the BAC .08 laws when combined with public education had an effect on reducing traffic fatalties. Similarly, the National Highway Traffic Safety Administration (1994), noted significant improvement in numerous measures of alcohol related deaths after the passing of BAC .08 laws in California, Maine, Oregon, Utah, and Vermont. Our study focuses on all continental states not just these 5 as was done in the NHTSA study.
+  
+  
+  
+  
+**Data**
+
+```{r}
+#Replicating Figure 1 
+#Data is not given on what percent of traffic deaths were alcohol related so we cannot include the dotted line which represents that. We can only examine the total fatalities/100,000 of the state population.
+#Also data is not given from 1975-80, like in the figure, so we will start our data at 1980 and so will the figure.
+data <-data %>%
+  group_by(year) %>%
+  summarise(meanByYear = mean(totfatrte, na.rm = TRUE))
+data <- merge(data,data, by = "year", suffixes = c("", "_mean"))
+plot(data$year, data$meanByYear, pch = 16, col = "black", main = "Traffic Deaths, United States: 1975–2004", xlab = "Year", ylab = "Total Fatalities/100,000 Population",ylim=c(14,26))
+smooth_line <- spline(data$year, data$meanByYear, n = 100, method = "natural")
+lines(smooth_line, col = "black", lwd = 3)
+
+#Here we can see that traffic deaths plunged initially after the initial reform, but that there has been very little change as of late with the total fatalities per 100,000 remaining almost constant over the past 15-20 years.
+
+
+#Replicating Table 1 (which summarizes the dataset)
+
+data82<-data2[data2$year==1982,]
+data04<-data2[data2$year==2004,]
+
+table2 <- data.frame(
+  Indicator = c("BAC 08", "BAC 08", "BAC 10", "BAC 10", "ALR", "ALR", "Seat belt (primary enforcement)", "Seat belt (primary enforcement)", "Seat belt (secondary enforcement)", "Seat belt (secondary enforcement)", "Graduated driver’s license", "Graduated driver’s license", "Maximum speed limit 70+", "Maximum speed limit 70+"),
+  Year = c(1982, 2004),
+  States_Adopting = c(sum(data82$bac08>.49), sum(data04$bac08>.49), sum(data82$bac10>.49), sum(data04$bac10>.50), sum(data82$perse>.50+1), sum(data04$perse>.50), sum(data82$seatbelt==1), sum(data04$seatbelt==1), sum(data82$seatbelt==2), sum(data04$seatbelt==2),sum(data82$gdl>0),sum(data04$gdl>0), sum(data82$sl70>0), sum(data04$sl70>0)+1)
+)
+#Also very odd mechanics when deciding if .5 is counted or not, the article is inconsistent with this mechanism which madde me hardcode my sum statements a bit.
+table(data04$seatbelt)#There is an error in the table printed with the seatbelt primary and secondary distinctions. My table has the correct counts and the articles is incorrect according to our dataset
+
+table1<- data.frame(
+  Variable = rep(c("Total fatalities per 100,000 population", "Weekend night per 100,000 population", "Unemployment rate", "Vehicle miles traveled (billions)", "Population aged 14–24 (%)"),each=2),
+  Year = c(1982,2004),
+  Mean = c(mean(data82$totfatrte), mean(data04$totfatrte), mean(data82$wkndfatrte), mean(data04$wkndfatrte),mean(data82$unem), mean(data04$unem),mean(data04$vehicmiles),mean(data04$vehicmiles), mean(data82$perc14_24),mean(data04$perc14_24)),
+  SD = c(sd(data82$totfatrte), sd(data04$totfatrte), sd(data82$wkndfatrte), sd(data04$wkndfatrte),sd(data82$unem), sd(data04$unem),sd(data04$vehicmiles),sd(data04$vehicmiles), sd(data82$perc14_24),sd(data04$perc14_24)),
+  Maximum = c(paste(max(data82$totfatrte),"New Mexico"),paste(max(data04$totfatrte),"Wyoming"),
+              paste(max(data82$wkndfatrte),"New Mexico"),paste(max(data04$wkndfatrte),"Mississippi"),
+              paste(max(data82$unem),"Michigan"),paste(max(data04$unem),"Michigan"),
+              paste(max(data82$vehicmiles),"California"),paste(max(data04$vehicmiles),"California"),
+              paste(max(data82$perc14_24),"South Carolina"),paste(max(data04$perc14_24),"Utah")),
+  Minimum = c(paste(min(data82$totfatrte),"Rhode, Illinois"),paste(min(data04$totfatrte),"Massachusets"),
+              paste(min(data82$wkndfatrte),"Massachssetts"),paste(min(data04$wkndfatrte),"New York"),
+              paste(min(data82$unem),"South Dakota"),paste(min(data04$unem),"New Hampshire"),
+              paste(min(data82$vehicmiles),"Vermont"),paste(min(data04$vehicmiles),"North Dakota"),
+              paste(min(data82$perc14_24),"Florida"),paste(min(data04$perc14_24),"Florida"))
+)
+#For some reason the author of the study divided the mean and sd of total fatalities per 100k and weekend fatalities per 100k which is why there first couple entries are 10 times too small. This is one of several mistakes by the authors in their graphical output.
+library(knitr)
+kable(table1, format = "html", caption = "Table1")
+kable(table2, format = "html", caption = "Table1")
+```
+
+  
+  
+  **Works Cited** (Throw this in after Conclusion)
+  
+  Bertrand, M., E. Duflo, and S. Mullinainthan. ‘‘How
+Much Should We Trust Differences-in-Differences
+Estimates?’’ Quarterly Journal of Economics, 19,
+2004, 249–75.
+  
+  Dee, T. ‘‘Does Setting Limits Save Lives? The Case of 0.08
+BAC Laws.’’ Journal of Policy Analysis and Management, 20, 2001, 111–28.
+  
+  Eisenberg, D. ‘‘Evaluating the Effectiveness of Policies
+Related to Drunk Driving.’’ Journal of Policy Analysis and Management, 22, 2003, 249–74.
+  
+  National Highway Traffic Safety Administration. A Preliminary Assessment of the Impact of Lowering the
+Illegal BAC per se Limit to .08 in Five States. Washington, DC: U.S. Department of Transportation,
+1994
+  
+  U.S. General Accounting Office. Highway Safety: Effectiveness of State .08 Blood Alcohol Laws. Washington, DC: GAO, RCED-99–179. 1999
+  
+  
+
