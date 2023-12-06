@@ -13,6 +13,8 @@ options(digits = 2)
 library(ggplot2)
 library(stargazer)
 library(readxl)
+library(tidyr)
+library(dplyr)
 data2<-read_excel("driving.xlsx")
 data<-read_excel("driving.xlsx")
 ```
@@ -32,8 +34,6 @@ data<-read_excel("driving.xlsx")
 
 ```{r}
 #Replicating Figure 1 
-#Data is not given on what percent of traffic deaths were alcohol related so we cannot include the dotted line which represents that. We can only examine the total fatalities/100,000 of the state population.
-#Also data is not given from 1975-80, like in the figure, so we will start our data at 1980 and so will the figure.
 data <-data %>%
   group_by(year) %>%
   summarise(meanByYear = mean(totfatrte, na.rm = TRUE))
@@ -74,13 +74,13 @@ table1<- data.frame(
               paste(min(data82$vehicmiles),"Vermont"),paste(min(data04$vehicmiles),"North Dakota"),
               paste(min(data82$perc14_24),"Florida"),paste(min(data04$perc14_24),"Florida"))
 )
-#For some reason the author of the study divided the mean and sd of total fatalities per 100k and weekend fatalities per 100k which is why there first couple entries are 10 times too small. This is one of several mistakes by the authors in their graphical output.
 library(knitr)
 kable(table1, format = "html", caption = "Table1")
 kable(table2, format = "html", caption = "Table1")
 ```
 
-  
+  Data is not given on what percent of traffic deaths were alcohol related so we cannot include the dotted line which represents that. We can only examine the total fatalities/100,000 of the state population.
+Also data is not given from 1975-80, like in the figure, so we will start our data at 1980 and so will the figure. Also,for some reason the author of the study divided the mean and sd of total fatalities per 100k and weekend fatalities per 100k which is why their first couple entries are 10 times too small. This is one of several mistakes by the authors in their graphical output.
   
   **Works Cited** (Throw this in after Conclusion)
   
